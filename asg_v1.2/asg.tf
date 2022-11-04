@@ -8,6 +8,14 @@ resource "aws_autoscaling_group" "main_asg" {
   force_delete              = var.force_delete
   launch_configuration      = aws_launch_configuration.main.name
   vpc_zone_identifier       = var.vpc_zone_identifier
+  dynamic "tag" {
+    for_each = local.common_tags
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
+  }
   instance_refresh {
     strategy = "Rolling"
     preferences {
@@ -49,7 +57,7 @@ resource "aws_autoscaling_policy" "scale_in" {
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
   autoscaling_group_name = aws_autoscaling_group.main_asg.name
-  
+
 }
 
 resource "aws_cloudwatch_metric_alarm" "cloudwatch_scale_in" {
